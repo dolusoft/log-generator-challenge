@@ -1,0 +1,142 @@
+[
+  {
+    "id": "traffic-forward-accept-https",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000013",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"port1\" dstip={dstip} dstport=443 dstintf=\"port2\" sessionid={sessionid} proto=6 action=\"accept\" policyid=1 service=\"HTTPS\" srccountry=\"Turkey\" dstcountry=\"United States\" duration={duration} sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "traffic-forward-accept-http",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000013",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"port1\" dstip={dstip} dstport=80 dstintf=\"port2\" sessionid={sessionid} proto=6 action=\"accept\" policyid=2 service=\"HTTP\" srccountry=\"Turkey\" dstcountry=\"Germany\" duration={duration} sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "traffic-forward-deny",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000014",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000014\" type=\"traffic\" subtype=\"forward\" level=\"warning\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"port1\" dstip={dstip} dstport={dstport} dstintf=\"port2\" sessionid={sessionid} proto=6 action=\"deny\" policyid=99 service=\"tcp/{dstport}\" srccountry=\"Turkey\" dstcountry=\"Russia\" duration=0 sentbyte=0 rcvdbyte=0 user=\"{user}\" msg=\"policy violation\""
+  },
+  {
+    "id": "traffic-forward-dns",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000013",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"internal\" dstip={dstip} dstport=53 dstintf=\"wan1\" sessionid={sessionid} proto=17 action=\"accept\" policyid=3 service=\"DNS\" srccountry=\"Turkey\" dstcountry=\"Reserved\" duration={duration} sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "traffic-forward-ssh",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000013",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000013\" type=\"traffic\" subtype=\"forward\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"port1\" dstip={dstip} dstport=22 dstintf=\"port2\" sessionid={sessionid} proto=6 action=\"accept\" policyid=4 service=\"SSH\" srccountry=\"Turkey\" dstcountry=\"Netherlands\" duration={duration} sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "traffic-forward-rdp-deny",
+    "type": "traffic",
+    "subtype": "forward",
+    "logid": "0000000014",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000014\" type=\"traffic\" subtype=\"forward\" level=\"warning\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"wan1\" dstip={dstip} dstport=3389 dstintf=\"internal\" sessionid={sessionid} proto=6 action=\"deny\" policyid=0 service=\"RDP\" srccountry=\"China\" dstcountry=\"Turkey\" duration=0 sentbyte=0 rcvdbyte=0 user=\"{user}\" msg=\"implicit deny\""
+  },
+  {
+    "id": "traffic-local-accept",
+    "type": "traffic",
+    "subtype": "local",
+    "logid": "0000000015",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0000000015\" type=\"traffic\" subtype=\"local\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srcintf=\"mgmt\" dstip={dstip} dstport=443 dstintf=\"local\" sessionid={sessionid} proto=6 action=\"accept\" policyid=0 service=\"HTTPS\" srccountry=\"Turkey\" dstcountry=\"Turkey\" duration={duration} sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "utm-webfilter-block",
+    "type": "utm",
+    "subtype": "webfilter",
+    "logid": "0317013312",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0317013312\" type=\"utm\" subtype=\"webfilter\" eventtype=\"ftgd_blk\" level=\"warning\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} dstip={dstip} dstport=443 sessionid={sessionid} proto=6 service=\"HTTPS\" hostname=\"malicious{sessionid}.example.com\" profile=\"default\" action=\"blocked\" reqtype=\"direct\" url=\"/\" sentbyte={sentbyte} rcvdbyte={rcvdbyte} catdesc=\"Malicious Websites\" user=\"{user}\""
+  },
+  {
+    "id": "utm-webfilter-allow",
+    "type": "utm",
+    "subtype": "webfilter",
+    "logid": "0317013313",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0317013313\" type=\"utm\" subtype=\"webfilter\" eventtype=\"ftgd_allow\" level=\"notice\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} dstip={dstip} dstport=443 sessionid={sessionid} proto=6 service=\"HTTPS\" hostname=\"www.example.com\" profile=\"default\" action=\"passthrough\" reqtype=\"direct\" url=\"/\" sentbyte={sentbyte} rcvdbyte={rcvdbyte} catdesc=\"Information Technology\" user=\"{user}\""
+  },
+  {
+    "id": "utm-ips-attack",
+    "type": "utm",
+    "subtype": "ips",
+    "logid": "0419016384",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0419016384\" type=\"utm\" subtype=\"ips\" eventtype=\"signature\" level=\"alert\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} srccountry=\"Russia\" dstip={dstip} dstport={dstport} sessionid={sessionid} action=\"dropped\" proto=6 service=\"HTTPS\" attack=\"SSH.Brute.Force\" srcintf=\"wan1\" dstintf=\"internal\" attackid=29844 profile=\"default\" ref=\"http://www.fortinet.com/ids/VID29844\" incidentserialno={sessionid} severity=\"critical\" user=\"{user}\""
+  },
+  {
+    "id": "utm-virus-blocked",
+    "type": "utm",
+    "subtype": "virus",
+    "logid": "0211008192",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0211008192\" type=\"utm\" subtype=\"virus\" eventtype=\"infected\" level=\"warning\" vd=\"root\" eventtime={eventtime} srcip={srcip} srcport={srcport} dstip={dstip} dstport=80 sessionid={sessionid} action=\"blocked\" service=\"HTTP\" profile=\"default\" filename=\"sample{sessionid}.exe\" virus=\"W32/Generic.AC.{sessionid}!tr\" dtype=\"Virus\" filehash=\"abc123def456\" filehashsrc=\"sandbox\" url=\"http://malware.example.com/{sessionid}\" user=\"{user}\""
+  },
+  {
+    "id": "utm-app-ctrl",
+    "type": "utm",
+    "subtype": "app-ctrl",
+    "logid": "1059028704",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"1059028704\" type=\"utm\" subtype=\"app-ctrl\" eventtype=\"signature\" level=\"information\" vd=\"root\" eventtime={eventtime} appid=15832 srcip={srcip} dstip={dstip} srcport={srcport} dstport={dstport} srcintf=\"port1\" dstintf=\"port2\" proto=6 service=\"HTTPS\" sessionid={sessionid} applist=\"default\" action=\"pass\" appcat=\"Social.Media\" app=\"Facebook\" hostname=\"www.facebook.com\" url=\"/\" sentbyte={sentbyte} rcvdbyte={rcvdbyte} user=\"{user}\""
+  },
+  {
+    "id": "event-system-login",
+    "type": "event",
+    "subtype": "system",
+    "logid": "0100032001",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0100032001\" type=\"event\" subtype=\"system\" level=\"information\" vd=\"root\" eventtime={eventtime} logdesc=\"Admin login successful\" sn={sessionid} user=\"{user}\" ui=\"https({srcip})\" method=\"https\" srcip={srcip} dstip={dstip} action=\"login\" status=\"success\" reason=\"none\" msg=\"Administrator {user} logged in successfully from https({srcip})\""
+  },
+  {
+    "id": "event-system-login-fail",
+    "type": "event",
+    "subtype": "system",
+    "logid": "0100032002",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0100032002\" type=\"event\" subtype=\"system\" level=\"warning\" vd=\"root\" eventtime={eventtime} logdesc=\"Admin login failed\" sn={sessionid} user=\"{user}\" ui=\"https({srcip})\" method=\"https\" srcip={srcip} dstip={dstip} action=\"login\" status=\"failed\" reason=\"name_invalid\" msg=\"Administrator {user} login failed from https({srcip}) because of invalid user name\""
+  },
+  {
+    "id": "event-system-config-change",
+    "type": "event",
+    "subtype": "system",
+    "logid": "0100044546",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0100044546\" type=\"event\" subtype=\"system\" level=\"information\" vd=\"root\" eventtime={eventtime} logdesc=\"Object attribute configured\" user=\"{user}\" ui=\"https({srcip})\" action=\"Edit\" cfgtid=12345{sessionid} cfgpath=\"firewall.policy\" cfgobj=\"{sessionid}\" cfgattr=\"action[deny->accept]\" msg=\"Edit firewall.policy {sessionid}\""
+  },
+  {
+    "id": "event-vpn-tunnel-up",
+    "type": "event",
+    "subtype": "vpn",
+    "logid": "0101037127",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0101037127\" type=\"event\" subtype=\"vpn\" level=\"notice\" vd=\"root\" eventtime={eventtime} logdesc=\"IPsec tunnel statistics\" msg=\"IPsec tunnel statistics\" action=\"tunnel-stats\" remip={dstip} locip={srcip} remport=4500 locport=4500 outintf=\"wan1\" cookies=\"abc{sessionid}/def{sessionid}\" user=\"{user}\" group=\"N/A\" useralt=\"N/A\" xauthuser=\"N/A\" xauthgroup=\"N/A\" assignip=N/A vpntunnel=\"branch-{sessionid}\" tunnelip=N/A tunnelid={sessionid} sentbyte={sentbyte} rcvdbyte={rcvdbyte} duration={duration}"
+  },
+  {
+    "id": "event-vpn-ssl-login",
+    "type": "event",
+    "subtype": "vpn",
+    "logid": "0101039426",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0101039426\" type=\"event\" subtype=\"vpn\" level=\"information\" vd=\"root\" eventtime={eventtime} logdesc=\"SSL VPN tunnel up\" action=\"tunnel-up\" tunneltype=\"ssl-tunnel\" tunnelid={sessionid} remip={srcip} tunnelip={dstip} user=\"{user}\" group=\"sslvpn-users\" dst_host=\"N/A\" reason=\"login successfully\" msg=\"SSL tunnel established\""
+  },
+  {
+    "id": "event-user-auth",
+    "type": "event",
+    "subtype": "user",
+    "logid": "0102043035",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0102043035\" type=\"event\" subtype=\"user\" level=\"notice\" vd=\"root\" eventtime={eventtime} logdesc=\"Authentication success\" srcip={srcip} dstip={dstip} policyid=1 interface=\"port1\" user=\"{user}\" group=\"users\" authproto=\"HTTP({srcip})\" action=\"authentication\" status=\"success\" reason=\"N/A\" msg=\"User {user} succeeded in authentication\""
+  },
+  {
+    "id": "event-wireless-station-add",
+    "type": "event",
+    "subtype": "wireless",
+    "logid": "0104032300",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0104032300\" type=\"event\" subtype=\"wireless\" level=\"information\" vd=\"root\" eventtime={eventtime} logdesc=\"Wireless station added\" sn=\"AP{sessionid}\" ap=\"AP-{sessionid}\" vap=\"corp-wifi\" ssid=\"CORP-WIFI\" radioid=1 stamac=\"aa:bb:cc:{sessionid}\" channel=36 user=\"{user}\" group=\"wifi-users\" msg=\"New wireless station joined\""
+  },
+  {
+    "id": "event-system-ha",
+    "type": "event",
+    "subtype": "ha",
+    "logid": "0105037889",
+    "template": "date={date} time={time} devname=\"{devname}\" devid=\"{devid}\" logid=\"0105037889\" type=\"event\" subtype=\"ha\" level=\"notice\" vd=\"root\" eventtime={eventtime} logdesc=\"HA member synced\" ha_group=0 ha_role=\"slave\" sn=\"{devid}\" user=\"{user}\" msg=\"HA member synchronized successfully with master\""
+  }
+]
