@@ -1,0 +1,62 @@
+# Copy this file to docker-compose.yml and fill in the generator and frontend
+# build contexts with your own implementation. The receiver service is
+# preconfigured and must NOT be modified.
+#
+# After completion, `docker compose up` from the repo root must bring up all
+# three services and reach a ready state within 60 seconds.
+
+services:
+  receiver:
+    image: ghcr.io/dolusoft/log-challenge-receiver:latest
+    container_name: receiver
+    ports:
+      - "4000:4000"
+    networks:
+      - challenge
+    restart: unless-stopped
+
+  generator:
+    # TODO: replace with your build context, e.g.:
+    #   build:
+    #     context: ./generator
+    #     dockerfile: Dockerfile
+    image: your-org/log-generator:dev
+    container_name: generator
+    ports:
+      - "3000:3000"
+    networks:
+      - challenge
+    depends_on:
+      - receiver
+    environment:
+      - RECEIVER_HOST=receiver
+      - RECEIVER_UDP_PORT=514
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1G
+    restart: unless-stopped
+
+  frontend:
+    # TODO: replace with your build context, e.g.:
+    #   build:
+    #     context: ./frontend
+    #     dockerfile: Dockerfile
+    image: your-org/log-frontend:dev
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - challenge
+    depends_on:
+      - generator
+      - receiver
+    environment:
+      - GENERATOR_URL=http://generator:3000
+      - RECEIVER_URL=http://receiver:4000
+    restart: unless-stopped
+
+networks:
+  challenge:
+    driver: bridge
