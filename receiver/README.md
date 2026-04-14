@@ -2,10 +2,12 @@
 
 The receiver is a small UDP listener + HTTP stats server that we provide as a prebuilt Docker image. **Do not modify or replace it** — every candidate is evaluated against the same receiver, and the image is the reference implementation we use for scoring.
 
+The receiver is the [`dolusoft/syslog-sink`](https://github.com/dolusoft/syslog-sink) tool, a general-purpose UDP syslog sink. In the challenge `docker-compose`, the service is named `receiver` (for DNS discovery on the challenge network); the underlying image is `syslog-sink`.
+
 ## Image
 
 ```
-ghcr.io/dolusoft/log-challenge-receiver:latest
+ghcr.io/dolusoft/syslog-sink:latest
 ```
 
 ## Behavior
