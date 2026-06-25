@@ -22,7 +22,7 @@ ghcr.io/dolusoft/syslog-sink:latest
 ```yaml
 services:
   receiver:
-    image: ghcr.io/dolusoft/log-challenge-receiver:latest
+    image: ghcr.io/dolusoft/syslog-sink:latest
     container_name: receiver
     ports:
       - "4000:4000"      # stats HTTP, also reachable from the host
