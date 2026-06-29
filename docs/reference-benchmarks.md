@@ -20,6 +20,12 @@ never reports its own CPU, so the efficiency number cannot be inflated by the se
 - **EPS/core** — sustained EPS ÷ generator cores used in that window (the efficiency metric).
 - **Host:** 12 logical cores, **no CPU limit** on the generator. Payload: Fortigate-style, UDP.
 
+> **Payload-size note.** The reference lines are ~280 bytes; this challenge binds you to
+> **300–800 characters** (see [requirements F4.4](requirements.md)). Slightly larger packets
+> cost marginally more CPU per packet, so don't expect to match the reference EPS/core to the
+> digit — the figures are an order-of-magnitude *bar to approach*, not an exact target. The
+> metric is normalized per core, so it stays the fair basis for comparison.
+
 ## Results
 
 ### Steady, paced rates

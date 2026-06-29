@@ -35,16 +35,31 @@ A receiver service is provided as a prebuilt image — see [receiver/README.md](
 
 ## Success Criteria
 
-We evaluate the generator at **four target rates**. At each, the rate accuracy and drop tolerance must hold:
+Your generator is judged on **how efficiently it sustains high throughput** under the
+**2 CPU / 1 GB** limit — not just whether it briefly touches a number. Three things matter:
 
-| Target Rate | Rate Accuracy | Drop Tolerance |
-|---|---|---|
-| 100 / sec | ±2% | < 5% |
-| 1,000 / sec | ±2% | < 5% |
-| 10,000 / sec | ±2% | < 5% |
-| 50,000 / sec | ±2% | < 5% |
+### 1. Sustained floor (pass/fail)
 
-Drop is measured against the provided receiver. Your UI must accept any rate value; we will exercise the four points above.
+Your generator must **sustain ≥ 100,000 EPS for at least 10 seconds** — a stable plateau
+(within ±5%) with **< 1% drop**, measured by the provided receiver. A generator that only
+*spikes* above 100k but cannot hold it does **not** pass. Failing this floor is a disqualifier.
+
+### 2. Efficiency (ranking)
+
+The headline metric is **received EPS ÷ generator CPU cores used** (EPS per core). The receiver
+counts the UDP it actually receives **and** reads your generator container's CPU from Docker
+stats — neither number is self-reported, so efficiency cannot be inflated. Higher EPS/core wins.
+
+For calibration, our reference generator sustains **~124k–197k EPS/core** depending on worker
+tuning. See [reference benchmarks](docs/reference-benchmarks.md) for the full bar to aim at.
+
+### 3. Rate accuracy (correctness)
+
+At paced rates (we exercise **1k / 10k / 100k**), the actual rate must track the target within
+**±2%** with **< 5% drop**. A generator must *pace* to a target, not only blast at full speed.
+
+> Your UI must accept any rate up to at least 1,000,000 — reaching the efficiency band means
+> driving well past the 100k floor.
 
 ## Rules
 
@@ -70,10 +85,11 @@ In your README, justify these choices:
 
 | Criterion | Weight | What We Look For |
 |---|---|---|
-| **DevOps** | 25% | docker-compose works in one command, backend container limited to 2 CPU / 1 GB, receiver integrated, network isolation |
-| **Backend** | 30% | ±2% accuracy at all four rates, <5% drop, multi-thread strategy, RFC 5424 + Fortigate format correct, real randomization |
-| **Frontend** | 25% | SvelteKit + shadcn-svelte properly used, real-time metrics, throughput chart, validation, error states |
-| **Architecture & Code Quality** | 20% | README justifies decisions, clean modular code, meaningful git history, TypeScript usage, complete AI folder |
+| **DevOps** | 20% | docker-compose works in one command, backend container limited to 2 CPU / 1 GB, receiver integrated, network isolation |
+| **Backend** | 25% | ±2% accuracy at the paced rates, <5% drop, multi-thread strategy, RFC 5424 + Fortigate format correct, real randomization |
+| **Efficiency** | 20% | Sustains the ≥100k EPS floor losslessly; high **EPS/core** (received ÷ generator cores); worker count matched to the rate; approaches the reference band |
+| **Frontend** | 20% | SvelteKit + shadcn-svelte properly used, real-time metrics, throughput chart, validation, error states |
+| **Architecture & Code Quality** | 15% | README justifies decisions, clean modular code, meaningful git history, TypeScript usage, complete AI folder |
 
 Full rubric in [docs/evaluation.md](docs/evaluation.md).
 
@@ -88,6 +104,7 @@ This challenge is designed to take approximately **4–5 days** (4–6 hours per
 | [Requirements](docs/requirements.md) | Project story and detailed feature specs |
 | [API Contracts](docs/api-contracts.md) | Generator + receiver endpoint documentation |
 | [Syslog Format](docs/syslog-format.md) | RFC 5424 envelope + Fortigate payload spec |
+| [Reference Benchmarks](docs/reference-benchmarks.md) | The EPS/core efficiency bar, measured with our reference generator |
 | [Evaluation](docs/evaluation.md) | Full rubric, measurement procedure, disqualification rules |
 
 ## AI Usage

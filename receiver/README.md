@@ -14,8 +14,11 @@ ghcr.io/dolusoft/syslog-sink:latest
 
 - Listens on UDP port `514` for syslog packets and increments counters.
 - Does **not** parse or validate packet contents — every datagram counts.
-- Exposes an HTTP server on port `4000` for stats and reset.
+- Exposes an HTTP server on port `4000` for stats, reset, and the recording/efficiency API.
 - All state is in-memory; counters are zeroed on container restart or via `POST /reset`.
+- **Measures efficiency receiver-side:** it reads your **`generator`** container's CPU from
+  Docker stats and divides received EPS by the cores used. The generator never reports its own
+  CPU, so the efficiency number cannot be inflated by the sender.
 
 ## How to wire it into your `docker-compose.yml`
 
@@ -28,13 +31,22 @@ services:
       - "4000:4000"      # stats HTTP, also reachable from the host
     networks:
       - challenge
+    # Lets the receiver read the generator container's CPU for the EPS/core
+    # efficiency metric. Do NOT remove these — without them efficiency is
+    # unmeasurable. The target name must match your generator's container_name.
+    environment:
+      - SYSLOG_SINK_TARGET_CONTAINER=generator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
 
 networks:
   challenge:
     driver: bridge
 ```
 
-The receiver's UDP port `514` does not need to be published to the host — your generator reaches it on the internal docker network.
+The receiver's UDP port `514` does not need to be published to the host — your generator reaches
+it on the internal docker network. Your generator service **must** be named
+`container_name: generator` so the receiver can find it.
 
 ## HTTP API quick reference
 
@@ -43,8 +55,36 @@ The receiver's UDP port `514` does not need to be published to the host — your
 | `GET` | `/stats` | totals and per-second window |
 | `POST` | `/reset` | zero counters |
 | `GET` | `/sample?n=10` | last N raw packet bodies (debug) |
+| `POST` | `/rec` | arm a recording window (resets counters, starts watching the generator) |
+| `POST` | `/stop` | freeze the window and compute the efficiency result (`ResultDto`) |
+| `GET` | `/result` | last finished `ResultDto`; `409` while armed/recording/idle |
+| `POST` | `/measure?secs=30` | **one-shot**: arm → hold `secs` → stop → return the `ResultDto` inline |
 
 Full request/response schemas: see [`docs/api-contracts.md`](../docs/api-contracts.md).
+
+## Measuring efficiency (EPS/core)
+
+The headline challenge metric is **received EPS ÷ generator cores used**. The receiver computes it
+from a *recording window* — a span during which it samples received EPS and the generator's CPU
+once per second, then reports the highest sustained plateau.
+
+The simplest way to capture a result is one call while your generator runs at its target rate:
+
+```bash
+# Start your generator (e.g. 300k/sec) from the dashboard, then:
+curl -X POST "http://localhost:4000/measure?secs=30"
+```
+
+This arms a window, holds it for 30 s (default; clamp 1–300), stops, and returns the `ResultDto`
+directly. The manual equivalent is `POST /rec` → wait → `POST /stop` → `GET /result`. Key fields:
+
+- `sustainedEps` — highest 1-second EPS average held for ≥10 s within ±5%.
+- `sustainedEff` — **EPS/core** over that window (the ranking metric).
+- `minThresholdMet` — `true` only if the sustained plateau reaches the 100k floor.
+
+A meaningful verdict needs ≥ ~15 s of steady traffic (the sustained segment requires a 10 s
+stable plateau). Start the generator **before** calling `/measure` — the window is wall-clock
+from arming.
 
 ## Health check
 
