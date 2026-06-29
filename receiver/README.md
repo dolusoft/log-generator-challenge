@@ -86,6 +86,30 @@ A meaningful verdict needs ≥ ~15 s of steady traffic (the sustained segment re
 stable plateau). Start the generator **before** calling `/measure` — the window is wall-clock
 from arming.
 
+## Security: Docker socket access
+
+The receiver reads the generator's CPU through the Docker socket. **Mounting `/var/run/docker.sock`
+into a container grants it effectively host-root** — the `:ro` flag only makes the socket *file*
+read-only; the Docker API behind it can still create privileged containers. So this mount is a
+real privilege grant, not a read-only convenience.
+
+What protects you in this challenge:
+
+- The receiver is **our reference image, pinned by digest** in the compose snippet. A candidate
+  cannot modify or swap it (doing so is an automatic disqualification). Only that exact image
+  ever touches the socket.
+- Evaluators run **untrusted candidate submissions**. Always `docker compose up` a submission in a
+  **disposable VM or throwaway sandbox**, never on a host with anything sensitive — this is the
+  right control regardless of the socket mount.
+
+**Hardened alternative (least privilege).** If you don't want to expose the raw socket, front it
+with a read-only Docker socket proxy (e.g. `tecnativa/docker-socket-proxy`) that allows only
+`GET /containers/{id}/stats` and denies every write/exec/create endpoint, then point the receiver
+at the proxy instead of the bare socket. This caps the blast radius to read-only stats even if the
+receiver were compromised. (Routing the receiver through a TCP proxy needs a small receiver-side
+option to target a non-default Docker endpoint — a planned enhancement; until then the digest-pinned
+socket mount above is the supported default.)
+
 ## Health check
 
 After `docker compose up`, verify the receiver is reachable:

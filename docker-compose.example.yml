@@ -13,10 +13,21 @@ services:
       - "4000:4000"
     networks:
       - challenge
-    # The receiver measures efficiency (EPS/core) by reading the generator
-    # container's CPU from Docker stats. It needs read-only access to the
-    # Docker socket and the name of the container to watch. Do NOT remove these
-    # — without them the efficiency number cannot be measured.
+    # The receiver reads the generator container's CPU from Docker stats to
+    # compute the EPS/core metric, so it needs the Docker socket + the name of
+    # the container to watch.
+    #
+    # SECURITY — read before using: bind-mounting the Docker socket grants the
+    # receiver effectively host-root. `:ro` only blocks writes to the socket
+    # *file*; it does NOT restrict the Docker API reachable through it, so treat
+    # the receiver as a privileged container. Mitigations baked into this
+    # challenge: the receiver is OUR reference image pinned by digest (see the
+    # `image:` line) — never point this mount at any other image. And because
+    # evaluators run untrusted submissions, run the whole stack in a disposable
+    # VM / throwaway sandbox, not on a workstation with anything valuable.
+    # Hardened alternative (least privilege): put a read-only Docker socket proxy
+    # in front of the socket so the receiver sees only the stats endpoint — see
+    # receiver/README.md "Security: Docker socket access".
     environment:
       - SYSLOG_SINK_TARGET_CONTAINER=generator
     volumes:
