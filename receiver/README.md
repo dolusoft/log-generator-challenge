@@ -6,9 +6,14 @@ The receiver is the [`dolusoft/syslog-sink`](https://github.com/dolusoft/syslog-
 
 ## Image
 
+Pinned to an **immutable digest** so every candidate runs the exact reference receiver:
+
 ```
-ghcr.io/dolusoft/syslog-sink:latest
+ghcr.io/dolusoft/syslog-sink:0.5.0@sha256:3d34117e0bbc783108bafb727662c1cda887b1035a0bbc2f0042573e82012a27
 ```
+
+The `@sha256:...` is the multi-arch manifest digest (resolves correctly on amd64 and arm64). Do
+not drop it or swap the tag — see "Security: Docker socket access" below for why this matters.
 
 ## Behavior
 
@@ -25,7 +30,7 @@ ghcr.io/dolusoft/syslog-sink:latest
 ```yaml
 services:
   receiver:
-    image: ghcr.io/dolusoft/syslog-sink:latest
+    image: ghcr.io/dolusoft/syslog-sink:0.5.0@sha256:3d34117e0bbc783108bafb727662c1cda887b1035a0bbc2f0042573e82012a27
     container_name: receiver
     ports:
       - "4000:4000"      # stats HTTP, also reachable from the host
@@ -95,21 +100,21 @@ real privilege grant, not a read-only convenience.
 
 What protects you in this challenge:
 
-- **Pin the receiver by digest.** Reference it as `ghcr.io/dolusoft/syslog-sink@sha256:<digest>`
-  (not a mutable tag) so only the exact verified image can ever hold the socket — a candidate
-  must not modify or swap the receiver (doing so is an automatic disqualification). Verify the
-  digest out of band before each evaluation.
+- **The receiver is pinned by digest** (`...@sha256:...` in the compose snippet above), so only the
+  exact verified image can ever hold the socket. A candidate must not modify, swap, or re-pin the
+  receiver (doing so is an automatic disqualification). Evaluators should still verify the digest
+  out of band before each run.
 - Evaluators run **untrusted candidate submissions**. Always `docker compose up` a submission in a
   **disposable VM or throwaway sandbox**, never on a host with anything sensitive — this is the
   right control regardless of the socket mount.
 
-**Least-privilege alternative (recommended while the image is on a mutable tag).** Instead of the
-raw socket, front it with a read-only Docker socket proxy (e.g. `tecnativa/docker-socket-proxy`)
-that allows only `GET /containers/{id}/stats` and denies every write/exec/create endpoint, then
-point the receiver at the proxy. This caps the blast radius to read-only stats even if the receiver
-were compromised. Routing the receiver through a TCP proxy needs a small receiver-side option to
-target a non-default Docker endpoint (a planned enhancement) — until both that lands and the image
-is digest-pinned, the proxy is the safer default.
+**Least-privilege alternative (optional hardening).** Instead of the raw socket, front it with a
+read-only Docker socket proxy (e.g. `tecnativa/docker-socket-proxy`) that allows only
+`GET /containers/{id}/stats` and denies every write/exec/create endpoint, then point the receiver
+at the proxy. This caps the blast radius to read-only stats even if the receiver were compromised.
+Routing the receiver through a TCP proxy needs a small receiver-side option to target a non-default
+Docker endpoint — a planned enhancement; until it lands, the digest-pinned socket mount above is the
+supported default.
 
 ## Health check
 
