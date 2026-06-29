@@ -95,20 +95,21 @@ real privilege grant, not a read-only convenience.
 
 What protects you in this challenge:
 
-- The receiver is **our reference image, pinned by digest** in the compose snippet. A candidate
-  cannot modify or swap it (doing so is an automatic disqualification). Only that exact image
-  ever touches the socket.
+- **Pin the receiver by digest.** Reference it as `ghcr.io/dolusoft/syslog-sink@sha256:<digest>`
+  (not a mutable tag) so only the exact verified image can ever hold the socket — a candidate
+  must not modify or swap the receiver (doing so is an automatic disqualification). Verify the
+  digest out of band before each evaluation.
 - Evaluators run **untrusted candidate submissions**. Always `docker compose up` a submission in a
   **disposable VM or throwaway sandbox**, never on a host with anything sensitive — this is the
   right control regardless of the socket mount.
 
-**Hardened alternative (least privilege).** If you don't want to expose the raw socket, front it
-with a read-only Docker socket proxy (e.g. `tecnativa/docker-socket-proxy`) that allows only
-`GET /containers/{id}/stats` and denies every write/exec/create endpoint, then point the receiver
-at the proxy instead of the bare socket. This caps the blast radius to read-only stats even if the
-receiver were compromised. (Routing the receiver through a TCP proxy needs a small receiver-side
-option to target a non-default Docker endpoint — a planned enhancement; until then the digest-pinned
-socket mount above is the supported default.)
+**Least-privilege alternative (recommended while the image is on a mutable tag).** Instead of the
+raw socket, front it with a read-only Docker socket proxy (e.g. `tecnativa/docker-socket-proxy`)
+that allows only `GET /containers/{id}/stats` and denies every write/exec/create endpoint, then
+point the receiver at the proxy. This caps the blast radius to read-only stats even if the receiver
+were compromised. Routing the receiver through a TCP proxy needs a small receiver-side option to
+target a non-default Docker endpoint (a planned enhancement) — until both that lands and the image
+is digest-pinned, the proxy is the safer default.
 
 ## Health check
 
