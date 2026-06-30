@@ -7,12 +7,32 @@
 
 services:
   receiver:
-    image: ghcr.io/dolusoft/syslog-sink:latest
+    image: ghcr.io/dolusoft/syslog-sink:0.5.0@sha256:3d34117e0bbc783108bafb727662c1cda887b1035a0bbc2f0042573e82012a27
     container_name: receiver
     ports:
       - "4000:4000"
     networks:
       - challenge
+    # The receiver reads the generator container's CPU from Docker stats to
+    # compute the EPS/core metric, so it needs the Docker socket + the name of
+    # the container to watch.
+    #
+    # SECURITY — read before using: bind-mounting the Docker socket grants the
+    # receiver effectively host-root. `:ro` only blocks writes to the socket
+    # *file*; it does NOT restrict the Docker API reachable through it, so treat
+    # the receiver as a privileged container. Controls in place / required:
+    #   1. The `image:` line above is pinned to an immutable digest, so only the
+    #      verified reference image can ever hold the socket. Keep it pinned and
+    #      never point this mount at any other image.
+    #   2. Run untrusted submissions in a disposable VM / throwaway sandbox,
+    #      never on a workstation with anything valuable.
+    #   3. For least privilege you can still front the socket with a read-only
+    #      Docker socket proxy that exposes only the stats endpoint — see
+    #      receiver/README.md "Security: Docker socket access".
+    environment:
+      - SYSLOG_SINK_TARGET_CONTAINER=generator
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
 
   generator:

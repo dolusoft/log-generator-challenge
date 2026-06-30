@@ -19,7 +19,7 @@ Base URL from host (recommended): `http://localhost:3000`
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `rate` | integer | yes | Target packets per second, 1–100000 |
+| `rate` | integer | yes | Target packets per second, 1–1000000 |
 | `duration` | integer | no | Seconds; if omitted, run until Stop |
 
 **Response 200:**
@@ -42,7 +42,7 @@ Base URL from host (recommended): `http://localhost:3000`
 ```json
 {
   "error": "invalid_rate",
-  "message": "rate must be between 1 and 100000"
+  "message": "rate must be between 1 and 1000000"
 }
 ```
 
@@ -162,6 +162,55 @@ Returns the most recent N raw UDP packet bodies as strings. For debugging.
   ]
 }
 ```
+
+### Recording & efficiency endpoints
+
+These power the headline metric (**EPS/core**). The receiver samples received EPS and the
+generator's CPU once per second over a *recording window*, then reports the highest sustained
+plateau. The generator never self-reports CPU, so the number cannot be inflated.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `POST` | `/rec` | arm a window (resets counters; starts watching the `generator` container) → `{ state, elapsedMs }` |
+| `POST` | `/stop` | freeze the window + compute the result → `ResultDto` |
+| `GET` | `/result` | last finished `ResultDto`; `409` while armed/recording/idle |
+| `POST` | `/measure?secs=30` | one-shot: arm → hold `secs` (default 30, clamp 1–300) → stop → returns `ResultDto`; `409` if already recording |
+
+**`ResultDto` (200):**
+```json
+{
+  "peakEps": 312044,
+  "totalReceived": 8901230,
+  "durationS": 30,
+  "sustainedEps": 300120.5,
+  "sustainedCpuPct": 152.3,
+  "sustainedEff": 197060.4,
+  "bestEffEps": 300120.5,
+  "bestEffCpuPct": 152.3,
+  "bestEff": 197060.4,
+  "fullrunEps": 296700.0,
+  "fullrunCpuPct": 158.1,
+  "fullrunEff": 187665.0,
+  "genCpuPeak": 165.2,
+  "genMemPeak": 2231132,
+  "generatorMetricsAvailable": true,
+  "minThresholdMet": true
+}
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `sustainedEps` | float \| null | Highest 1 s EPS average held ≥ 10 s within ±5%; `null` if no such plateau |
+| `sustainedEff` | float \| null | **EPS/core** over that plateau — the ranking metric |
+| `sustainedCpuPct` | float \| null | Generator CPU over the plateau (raw Docker %, `100` = 1 core) |
+| `minThresholdMet` | bool | `true` only if `sustainedEps` reaches the 100,000 floor |
+| `generatorMetricsAvailable` | bool | `false` if the receiver couldn't read the generator's CPU (check the `docker.sock` mount + `SYSLOG_SINK_TARGET_CONTAINER`) |
+| `peakEps` | integer | Highest single-second EPS in the window |
+| `genMemPeak` | integer \| null | Peak generator memory (bytes) |
+
+> **cores used = `cpuPct / 100`**, and **`sustainedEff = sustainedEps / (sustainedCpuPct / 100)`**.
+> An empty `sustainedEps`/`sustainedEff` means the window had no ≥10 s stable plateau (too short or
+> too noisy) — record a longer, steadier run.
 
 ### UDP — port 514
 

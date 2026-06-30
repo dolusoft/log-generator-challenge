@@ -19,23 +19,25 @@ You are building that tool.
 
 ### F1 — Configuration & Control
 
-- **F1.1** UI accepts a target rate input (integer, 1–100,000).
+- **F1.1** UI accepts a target rate input (integer, 1–1,000,000). The 100k floor is the *minimum* bar; reaching the efficiency band means driving well above it.
 - **F1.2** UI accepts an optional duration input (seconds). Empty = run until Stop.
 - **F1.3** Start button is enabled only when no run is active.
 - **F1.4** Stop button is enabled only when a run is active.
 - **F1.5** While a run is active, rate and duration inputs are disabled.
 - **F1.6** A status badge displays one of: `IDLE`, `RUNNING`, `STOPPED`.
-- **F1.7** Invalid rate (outside 1–100,000) shows an inline validation error and blocks Start.
+- **F1.7** Invalid rate (outside 1–1,000,000) shows an inline validation error and blocks Start.
 
 ### F2 — Generator Behavior
 
 - **F2.1** On `POST /run`, the generator must begin emitting UDP packets at the requested rate.
-- **F2.2** Rate accuracy must be within **±2%** of the target at 100, 1k, 10k, and 50k packets/sec.
-- **F2.3** A multi-threaded / multi-worker / multi-process strategy is required for the higher rates (50k/sec is not achievable single-threaded on most runtimes).
+- **F2.2** Rate accuracy must be within **±2%** of the target at the paced rates **1k, 10k, and 100k** packets/sec.
+- **F2.3** A multi-threaded / multi-worker / multi-process strategy is required for the higher rates (100k+/sec is not achievable single-threaded on most runtimes). Matching the worker count to the rate is what pushes efficiency up.
 - **F2.4** Each packet must be a different randomized payload (see F4).
 - **F2.5** When duration is provided, the run auto-stops at expiry.
 - **F2.6** `POST /stop` halts an active run immediately.
 - **F2.7** A second `POST /run` while a run is active must return `409` (the operator must Stop first).
+- **F2.8** **Sustained floor (pass/fail):** under the 2 CPU / 1 GB limit, the generator must sustain **≥ 100,000 EPS for ≥ 10 s** as a stable plateau (±5%) with **< 1% drop**, as measured by the receiver. A momentary spike above 100k does not count. (See [evaluation.md](evaluation.md) for the disqualification rule.)
+- **F2.9** **Efficiency (ranking):** the headline metric is **received EPS ÷ generator CPU cores used** (EPS/core), measured receiver-side. Higher is better; the reference reaches ~124k–197k EPS/core (see [reference-benchmarks.md](reference-benchmarks.md)).
 
 ### F3 — Receiver Integration
 
@@ -73,6 +75,7 @@ The dashboard MUST display, updated at least once per second:
 - **F7.2** The generator service MUST declare resource limits of 2 CPU / 1 GB under `deploy.resources.limits`.
 - **F7.3** UDP traffic between generator and receiver flows on the internal docker network. The receiver's UDP port does not need to be published to the host.
 - **F7.4** Receiver's HTTP port `4000` must be reachable from the frontend (and optionally from the host for debugging).
+- **F7.5** The generator service MUST be named **`container_name: generator`**. The provided receiver is wired (via the Docker socket + `SYSLOG_SINK_TARGET_CONTAINER=generator`, both in the compose snippet) to read that container's CPU — this is how efficiency (EPS/core) is measured. Do not rename the generator or remove the receiver's `docker.sock` mount.
 
 ### F8 — Documentation
 
@@ -82,7 +85,7 @@ The dashboard MUST display, updated at least once per second:
 
 ## Non-Functional Requirements
 
-- **N1 — Performance:** Frontend must remain responsive at 50k/sec. Chart implementations that re-render the full canvas every tick will fail this.
+- **N1 — Performance:** Frontend must remain responsive at the rates we test (100k/sec and well beyond). Chart implementations that re-render the full canvas every tick will fail this.
 - **N2 — Boot time:** `docker compose up` should reach a ready state within **60 seconds** on a modern laptop.
 - **N3 — Type safety:** TypeScript mandatory in frontend. Strict mode encouraged. Backend type safety is a bonus.
 
